@@ -172,11 +172,19 @@ INSERT OVERWRITE MyTable PARTITION (key1 = value1, key2 = value2, ...) SELECT ..
 
 ## Purging tables
 
-You can use `INSERT OVERWRITE` to purge tables by inserting empty value.
-
 {{< tabs "purge-tables-syntax" >}}
 
+{{< tab "Flink 1.17+" >}}
+
+```sql
+DELETE FROM MyTable
+```
+
+{{< /tab >}}
+
 {{< tab "Flink" >}}
+
+You can use `INSERT OVERWRITE` to purge tables by inserting empty value.
 
 ```sql
 INSERT OVERWRITE MyTable /*+ OPTIONS('dynamic-partition-overwrite'='false') */ SELECT * FROM MyTable WHERE false
@@ -188,15 +196,19 @@ INSERT OVERWRITE MyTable /*+ OPTIONS('dynamic-partition-overwrite'='false') */ S
 
 ## Purging Partitions
 
-Currently, Paimon supports two ways to purge partitions.
-
-1. Like purging tables, you can use `INSERT OVERWRITE` to purge data of partitions by inserting empty value to them.
-
-2. Method #1 does not support to drop multiple partitions. In case that you need to drop multiple partitions, you can submit the drop-partition job through `flink run`.
-
 {{< tabs "purge-partitions-syntax" >}}
 
+{{< tab "Flink 1.17+" >}}
+
+```sql
+DELETE FROM MyTable WHERE partition_key = ...
+```
+
+{{< /tab >}}
+
 {{< tab "Flink" >}}
+
+Like purging tables, you can use `INSERT OVERWRITE` to purge data of partitions by inserting empty value to them.
 
 ```sql
 -- Syntax
@@ -220,6 +232,8 @@ INSERT OVERWRITE MyTable PARTITION (k0 = 0, k1 = 0) SELECT v FROM MyTable WHERE 
 {{< /tab >}}
 
 {{< tab "Flink Job" >}}
+
+In case that you need to drop multiple partitions, you can submit the drop-partition job through `flink run`.
 
 Run the following command to submit a drop-partition job for the table.
 
@@ -250,6 +264,7 @@ For more information of drop-partition, see
 {{< /tabs >}}
 
 ## Updating tables
+
 Currently, Paimon supports updating records by using `UPDATE` in Flink 1.17 and later versions. You can perform `UPDATE` in Flink's `batch` mode.
 
 {{< hint info >}}
@@ -294,38 +309,6 @@ UPDATE MyTable SET b = 1, c = 2 WHERE a = 'myTable';
 
 {{< tabs "delete-from-table" >}}
 
-{{< tab "Flink 1.16-" >}}
-
-In Flink 1.16 and previous versions, Paimon only supports deleting records via submitting the 'delete' job through `flink run`.
-
-Run the following command to submit a 'delete' job for the table.
-
-```bash
-<FLINK_HOME>/bin/flink run \
-    /path/to/paimon-flink-action-{{< version >}}.jar \
-    delete \
-    --warehouse <warehouse-path> \
-    --database <database-name> \
-    --table <table-name> \
-    --where <filter_spec> \
-    [--catalog-conf <paimon-catalog-conf> [--catalog-conf <paimon-catalog-conf> ...]]
-    
-filter_spec is equal to the 'WHERE' clause in SQL DELETE statement. Examples:
-    age >= 18 AND age <= 60
-    animal <> 'cat'
-    id > (SELECT count(*) FROM employee)
-```
-
-For more information of 'delete', see
-
-```bash
-<FLINK_HOME>/bin/flink run \
-    /path/to/paimon-flink-action-{{< version >}}.jar \
-    delete --help
-```
-
-{{< /tab >}}
-
 {{< tab "Flink 1.17+" >}}
 {{< hint info >}}
 Important table properties setting:
@@ -356,6 +339,38 @@ CREATE TABLE MyTable (
 
 -- you can use
 DELETE FROM MyTable WHERE currency = 'UNKNOWN;
+```
+
+{{< /tab >}}
+
+{{< tab "Flink 1.16-" >}}
+
+In Flink 1.16 and previous versions, Paimon only supports deleting records via submitting the 'delete' job through `flink run`.
+
+Run the following command to submit a 'delete' job for the table.
+
+```bash
+<FLINK_HOME>/bin/flink run \
+    /path/to/paimon-flink-action-{{< version >}}.jar \
+    delete \
+    --warehouse <warehouse-path> \
+    --database <database-name> \
+    --table <table-name> \
+    --where <filter_spec> \
+    [--catalog-conf <paimon-catalog-conf> [--catalog-conf <paimon-catalog-conf> ...]]
+    
+filter_spec is equal to the 'WHERE' clause in SQL DELETE statement. Examples:
+    age >= 18 AND age <= 60
+    animal <> 'cat'
+    id > (SELECT count(*) FROM employee)
+```
+
+For more information of 'delete', see
+
+```bash
+<FLINK_HOME>/bin/flink run \
+    /path/to/paimon-flink-action-{{< version >}}.jar \
+    delete --help
 ```
 
 {{< /tab >}}
